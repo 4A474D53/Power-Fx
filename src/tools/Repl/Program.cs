@@ -141,6 +141,15 @@ namespace PowerFxHostSamples
                         Console.WriteLine(varName + ": " + PrintResult(varValue));
                     }
 
+                    // IR pretty printer: IR( <expr> )
+                    else if ((match = Regex.Match(expr, @"^\s*IR\((?<expr>.*)\)\s*$", RegexOptions.Singleline)).Success)
+                    {
+                        var opts = new ParserOptions() { AllowsSideEffects = true };
+                        var cr = _engine.Check(match.Groups["expr"].Value, options: opts);
+                        var ir = cr.PrintIR();
+                        Console.WriteLine(ir);
+                    }
+
                     // formula definition: <ident> = <formula>
                     else if ((match = Regex.Match(expr, @"^\s*(?<ident>\w+)\s*=(?<formula>.*)$", RegexOptions.Singleline)).Success)
                     {
@@ -576,12 +585,13 @@ namespace PowerFxHostSamples
         {
             public BooleanValue Execute()
             {
-                var column = 0;
+                int column = 0;
                 var funcList = string.Empty;
 #pragma warning disable CS0618 // Type or member is obsolete
-                var funcNames = _engine.Config.FunctionInfos.Select(x => x.Name).Distinct();
+                List<string> funcNames = _engine.Config.FunctionInfos.Select(x => x.Name).Distinct().ToList();
 #pragma warning restore CS0618 // Type or member is obsolete
 
+                funcNames.Sort();
                 foreach (var func in funcNames)
                 {
                     funcList += $"  {func,-14}";
@@ -590,8 +600,6 @@ namespace PowerFxHostSamples
                         funcList += "\n";
                     }
                 }
-
-                funcList += "  Set";
 
                 // If we return a string, it gets escaped. 
                 // Just write to console 
@@ -617,7 +625,7 @@ Set( <identifier>, <formula> ) creates or changes a variable's value.
              }
 Supported types: Number, String, Boolean, DateTime, Date, Time
 
-Available functions (all are case sensitive):
+Availalbe functions (all are case sensitive):
 " + funcList + @"
 
 Available operators: = <> <= >= + - * / % && And || Or ! Not in exactin 

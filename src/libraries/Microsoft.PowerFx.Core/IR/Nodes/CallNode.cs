@@ -77,21 +77,18 @@ namespace Microsoft.PowerFx.Core.IR.Nodes
         public override string ToString()
         {
             string result;
+
             if (Scope != null)
             {
-                result = $"Call({Function.Name}, {Scope}";
+                result = $"{Function.Name}:{IRContext.ResultType._type}, {Scope}";
             }
             else
             {
-                result = $"Call({Function.Name}";
+                result = $"{Function.Name}:{IRContext.ResultType._type}";
             }
 
-            foreach (var arg in Args)
-            {
-                result += $", {arg}";
-            }
+            result += $"( {string.Join(", ", Args.Select(arg => $"{arg}"))} )";
 
-            result += ")";
             return result;
         }
     }
